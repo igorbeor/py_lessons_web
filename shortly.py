@@ -41,7 +41,8 @@ class Shortly(object):
                 Rule("/", endpoint="home"),
                 Rule("/create", endpoint="new_url"),
                 Rule("/<short_id>_details", endpoint="short_link_details"),
-                Rule("/<short_id>", endpoint="follow_short_link")
+                Rule("/<short_id>", endpoint="follow_short_link"),
+                Rule("/list", endpoint="list_url")
                 # TODO: Добавить ендпоинты на:
                 # - создание шортката
                 # - редирект по ссылке
@@ -104,7 +105,10 @@ class Shortly(object):
 
     def on_list_url(self, request):
         link_targets = get_list_urls(self.redis)
-        return 
+        return self.render_template(
+            "list_url.html",
+            link_targets=link_targets,
+        )
 
     def error_404(self):
         response = self.render_template("404.html")
