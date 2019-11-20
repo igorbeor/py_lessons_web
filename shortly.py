@@ -105,6 +105,8 @@ class Shortly(object):
 
     def on_list_url(self, request):
         link_targets = get_list_urls(self.redis)
+        link_targets = [link_target.decode('utf-8')
+                        for link_target in link_targets]
         return self.render_template(
             "list_url.html",
             link_targets=link_targets,

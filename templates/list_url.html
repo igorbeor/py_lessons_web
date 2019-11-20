@@ -1,8 +1,9 @@
 {% extends "layout.html" %}
-{% block title %}List URL{% endblock %}
+{% block title %}List URLs{% endblock %}
 {% block body %}
-<ul>
-{% for link_target in link_targets %}
-  <li>{{ link_turget }}</li>
+  <ul>
+    {% for link_target in link_targets %}
+      <li>{{ link_target }}</li>
+    {% endfor %}
+  </ul>
 {% endblock %}
-</ul>

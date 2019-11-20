@@ -25,4 +25,5 @@ def get_count(redis, short_id):
 
 
 def get_list_urls(redis):
-    return redis.get("url-target:*")
+    keys = redis.keys("url-target:*")
+    return [redis.get(key) for key in keys]
