@@ -3,7 +3,7 @@
 {% block body %}
   <ul>
     {% for link_target in link_targets %}
-      <li>{{ link_target }}</li>
+      <li><a href="/{{ link_target['id'] }}_details">{{ link_target['url'] }}</a></li>
     {% endfor %}
   </ul>
 {% endblock %}

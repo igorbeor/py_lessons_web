@@ -1,4 +1,5 @@
 from utils import base36_encode
+import re
 
 
 def insert_url(redis, url):
@@ -26,4 +27,7 @@ def get_count(redis, short_id):
 
 def get_list_urls(redis):
     keys = redis.keys("url-target:*")
-    return [redis.get(key) for key in keys]
+    return [{
+        'id': re.search(r'\d+', key.decode('utf-8')).group(0),
+        'url': redis.get(key).decode('utf-8')}
+        for key in keys]

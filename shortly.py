@@ -12,7 +12,12 @@ import os
 
 import redis
 
-from db import get_url, insert_url, get_count, increment_url, get_list_urls
+from db import get_url
+from db import insert_url
+from db import get_count
+from db import increment_url
+from db import get_list_urls
+from auth_data import USERNAME, PASSWORD
 from utils import get_hostname, is_valid_url
 
 from jinja2 import Environment
@@ -42,11 +47,8 @@ class Shortly(object):
                 Rule("/create", endpoint="new_url"),
                 Rule("/<short_id>_details", endpoint="short_link_details"),
                 Rule("/<short_id>", endpoint="follow_short_link"),
-                Rule("/list", endpoint="list_url")
-                # TODO: Добавить ендпоинты на:
-                # - создание шортката
-                # - редирект по ссылке
-                # - детальную информацию о ссылке
+                Rule("/list", endpoint="list_url"),
+                Rule("/logout", endpoint="logout")
             ]
         )
 
@@ -66,8 +68,31 @@ class Shortly(object):
 
     def wsgi_app(self, environ, start_response):
         request = Request(environ)
-        response = self.dispatch_request(request)
+        auth = request.authorization
+        if not auth or not self.check_auth(auth.username, auth.password):
+            response = self.auth_required(request)
+        else:
+            response = self.dispatch_request(request)
         return response(environ, start_response)
+
+    def check_auth(self, username, password):
+        return username == USERNAME and password == PASSWORD
+
+    def auth_required(self, request):
+        return Response(
+            response="Login required!",
+            status=401,
+            headers={
+                "WWW-Authenticate":
+                "Basic realm='login required', charset='UTF-8'"
+            }
+        )
+
+    def on_logout(self, request):
+        return Response(
+            response="You are logged out.",
+            status=401,
+        )
 
     def on_home(self, request):
         return self.render_template("homepage.html")
@@ -80,7 +105,7 @@ class Shortly(object):
                 error = "URL is not valide"
             else:
                 url_id = insert_url(self.redis, url)
-                return redirect("/%s_details"%url_id)
+                return redirect("/%s_details" % url_id)
         return self.render_template("new_url.html", error=error)
 
     def on_follow_short_link(self, request, short_id):
@@ -105,8 +130,6 @@ class Shortly(object):
 
     def on_list_url(self, request):
         link_targets = get_list_urls(self.redis)
-        link_targets = [link_target.decode('utf-8')
-                        for link_target in link_targets]
         return self.render_template(
             "list_url.html",
             link_targets=link_targets,
